@@ -3,14 +3,13 @@ package com.parse;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileWriter;
-import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -219,6 +218,8 @@ public class QueryParser {
 				writer = new FileWriter(csvLocation, true);
 				CSVUtils.writeLine(writer, colsMapHeader);
 
+			}else{
+				writer = new FileWriter(csvLocation, true);
 			}
 
 			try {
@@ -247,48 +248,18 @@ public class QueryParser {
 				rs = stmt.executeQuery(query);
 				System.out.println("Result Set :- " + rs);
 				// File
+				ResultSetMetaData rsmd = rs.getMetaData();
+
+				int columnsNumber = rsmd.getColumnCount();
 				while (rs.next()) {
 					csvData = new HashMap<Integer, String>();
-					csvData.put(0, rs.getString(1));
-					csvData.put(1, rs.getString(2));
-					csvData.put(2, rs.getString(3));
-					csvData.put(3, rs.getString(4));
-					csvData.put(4, rs.getString(5));
-					csvData.put(5, rs.getString(6));
-					csvData.put(6, rs.getString(7));
-					csvData.put(7, rs.getString(8));
-					csvData.put(8, rs.getString(9));
-					csvData.put(9, rs.getString(10));
-
-					csvData.put(10, rs.getString(11));
-					csvData.put(11, rs.getString(12));
-					csvData.put(12, rs.getString(13));
-
-					csvData.put(13, rs.getString(14));
-					csvData.put(14, rs.getString(15));
-					csvData.put(15, rs.getString(16));
-					csvData.put(16, rs.getString(17));
-					csvData.put(17, rs.getString(18));
-
-					csvData.put(18, rs.getString(19));
-					csvData.put(19, rs.getString(20));
-					csvData.put(20, rs.getString(21));
-					csvData.put(21, rs.getString(22));
-
-					csvData.put(22, rs.getString(23));
-					csvData.put(23, rs.getString(24));
-					csvData.put(24, rs.getString(25));
-					csvData.put(25, rs.getString(26));
-
-					csvData.put(26, rs.getString(27));
-					csvData.put(27, rs.getString(28));
-					csvData.put(28, rs.getString(29));
-					csvData.put(29, rs.getString(30));
-
-					csvData.put(30, rs.getString(31));
-					csvData.put(31, rs.getString(32));
-					csvData.put(32, rs.getString(33));
-					csvData.put(33, rs.getString(34));
+					for(int i=1;i<= columnsNumber;i++){
+						if(rs.getObject(i) != null){
+							csvData.put(i-1, rs.getObject(i).toString());
+						}else{
+							csvData.put(i-1, "No Value");
+						}
+					}
 					List colsMapData = new ArrayList();
 					for (Map.Entry<Integer, String> map : csvData.entrySet()) {
 						colsMapData.add(map.getValue());
@@ -296,10 +267,10 @@ public class QueryParser {
 					CSVUtils.writeLine(writer, colsMapData);
 					Thread.sleep(50);
 					System.out.println("Data added successfully !!!");
-					writer.flush();
-					writer.close();
+					
 				}
-
+				writer.flush();
+				writer.close();
 				con.close();
 
 			} catch (Exception e) {
@@ -307,12 +278,14 @@ public class QueryParser {
 				writer.close();
 				e.printStackTrace();// TODO: handle exception
 			}
+			
 
 		} catch (Exception e) {
 			System.out.println(e.getMessage());
 			e.printStackTrace();
 
 		}
+		
 
 	}
 
