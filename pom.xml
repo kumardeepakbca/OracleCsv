@@ -1,5 +1,4 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project>
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.parse</groupId>
 	<artifactId>queryData</artifactId>
@@ -17,19 +16,9 @@
 		</dependency>
         <dependency>
             <groupId>com.oracle</groupId>
-            <artifactId>ojdbc6</artifactId>
-            <version>11.2.0</version>
+            <artifactId>ojdbc5</artifactId>
+            <version>11.2.0.1</version>
         </dependency>
-		 <dependency>
-                <groupId>javax.mail</groupId>
-                <artifactId>javax.mail-api</artifactId>
-                <version>1.5.6</version>
-            </dependency>
-            <dependency>
-                <groupId>com.sun.mail</groupId>
-                <artifactId>javax.mail</artifactId>
-                <version>1.5.6</version>
-</dependency>
 	</dependencies>
 
 	<build>
@@ -44,7 +33,7 @@
 
 				<artifactId>maven-shade-plugin</artifactId>
 
-				<version>2.4.3</version>
+				<version>1.4</version>
 
 				<executions>
 

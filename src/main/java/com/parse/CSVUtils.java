@@ -7,11 +7,11 @@ public class CSVUtils {
 
     private static final char DEFAULT_SEPARATOR = ',';
 
-    public static void writeLine(Writer w, List<String> values) throws IOException {
+    public static void writeLine(Writer w, List values) throws IOException {
         writeLine(w, values, DEFAULT_SEPARATOR, ' ');
     }
 
-    public static void writeLine(Writer w, List<String> values, char separators) throws IOException {
+    public static void writeLine(Writer w, List values, char separators) throws IOException {
         writeLine(w, values, separators, ' ');
     }
 
@@ -26,7 +26,7 @@ public class CSVUtils {
 
     }
 
-    public static void writeLine(Writer w, List<String> values, char separators, char customQuote) throws IOException {
+    public static void writeLine(Writer w, List values, char separators, char customQuote) throws IOException {
 
         boolean first = true;
 
@@ -37,7 +37,10 @@ public class CSVUtils {
         }
 
         StringBuilder sb = new StringBuilder();
-        for (String value : values) {
+        
+        
+        for(int i=0; i <  values.size(); i++) {
+            String value = (String)values.get(i);
             if (!first) {
                 sb.append(separators);
             }
@@ -49,6 +52,19 @@ public class CSVUtils {
 
             first = false;
         }
+        
+      /*  for (String value : values) {
+            if (!first) {
+                sb.append(separators);
+            }
+            if (customQuote == ' ') {
+                sb.append(followCVSformat(value));
+            } else {
+                sb.append(customQuote).append(followCVSformat(value)).append(customQuote);
+            }
+
+            first = false;
+        }*/
         sb.append("\n");
         w.append(sb.toString());
 
