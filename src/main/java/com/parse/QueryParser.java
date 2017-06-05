@@ -8,12 +8,15 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.Statement;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 
@@ -21,6 +24,10 @@ import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.xssf.usermodel.XSSFCell;
+import org.apache.poi.xssf.usermodel.XSSFRow;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 public class QueryParser {
 
@@ -84,8 +91,13 @@ public class QueryParser {
 		ResultSet rs = null;
 		Properties properties = new Properties();
 		try {
+			String strDateFormat = "EEEE";
+			SimpleDateFormat sdf = new SimpleDateFormat(strDateFormat);
+			System.out.println("Current day of week in EEEE format : " + sdf.format(new Date()));
+			String dayName=sdf.format(new Date());
 			int year = Calendar.getInstance().get(Calendar.YEAR);
 			int month = Calendar.getInstance().get(Calendar.MONTH);
+			month=month+1;
 			String m = "";
 			if (month < 10) {
 				m = "0" + month;
@@ -95,12 +107,14 @@ public class QueryParser {
 			if (day < 10) {
 				d = "0" + day;
 			}
-			String fileName = "MT559_110_Locked_Report_" + d + m + year
-					+ ".xlsx";
+			
 			properties.load(new FileInputStream(propertiesFilePath));
 			properties.load(new FileInputStream(properties.getProperty("config.path")));
 			properties.load(new FileInputStream(properties.getProperty("sql.path")));
-
+			String fileType=properties.getProperty("file.type");
+			System.out.println("fileType :- " + fileType);
+			System.out.println("dayName :- " + dayName);
+			String fileName = "MT559_110_Locked_Report_" + m + d + year	+ "."+fileType;
 			int tableCount = 0;
 			List colsData = new ArrayList();
 			String timePeriod = "";
@@ -115,9 +129,15 @@ public class QueryParser {
 				String url = properties.getProperty("app.jdbc.url");
 				String username = properties.getProperty("app.jdbc.username");
 				String password = properties.getProperty("app.jdbc.password");
-				String query = properties.getProperty("app.query");
+				String query="";
+				if(dayName != null && dayName.equalsIgnoreCase("Monday") ){
+					System.out.println("Monday query will excute>>>>>>>>");
+					query = properties.getProperty("app.monday.query");
+				}else{
+					query = properties.getProperty("app.query");
+				}
 				String reportLocation = properties.getProperty("report.path");
-				
+				String dateQuery= properties.getProperty("app.query.alter.date.session");
 				
 				String sessionQuery = properties
 						.getProperty("app.query.init.session");
@@ -128,9 +148,7 @@ public class QueryParser {
 				//System.out.println("QUERY :- " + query);
 				//System.out.println("Session init query :- " + sessionQuery);
 				System.out.println("Report Location :- " + reportLocation);
-				
-				System.out.println("sql.path :---------- " + properties.getProperty("app.query"));
-				System.out.println("config.path :----------- " + properties.getProperty("report.path"));
+				System.out.println("dateQuery :---------- " + dateQuery);
 				
 				Class.forName(driverClass);
 				// step2 create the connection object
@@ -141,12 +159,19 @@ public class QueryParser {
 				Statement stmt = con.createStatement();
 				// step4 execute query
 				// rs=stmt.executeQuery(Constants.query);
+				
 				if (sessionQuery != null && !"".equals(sessionQuery.trim())) {
 					System.out
 							.println("Session Init Query executing :---------------- ");
 					stmt.executeUpdate(sessionQuery);
 				}
+				if (dateQuery != null && !"".equals(dateQuery.trim())) {
+					System.out
+							.println("Session Date Query executing :---------------- ");
+					stmt.executeUpdate(dateQuery);
+				}
 				System.out.println("Query executing :---------------- ");
+				System.out.println("Query:---------------- "+query);
 				rs = stmt.executeQuery(query);
 				System.out.println("Result Set :- " + rs);
 				// File
@@ -161,65 +186,133 @@ public class QueryParser {
 				}
 
 				String sheetName = "MT559_110_Report";// name of sheet
-
-				HSSFWorkbook wb = new HSSFWorkbook();
-				HSSFSheet sheet = wb.createSheet(sheetName);
-				HSSFSheet sheet1 = wb.createSheet("SQL");
-				Iterator hiter = colsMapHeader.iterator();
-				int coulmn = 0;
-				int rowno = 0;
 				
-				HSSFRow row = sheet.createRow(rowno++);
-				while (hiter.hasNext()) {
-					HSSFCell cell = row.createCell(coulmn++);
-					cell.setCellValue((String) hiter.next());
-				}
-				
-				HSSFRow rowSql = sheet1.createRow(0);
-				HSSFCell cellSql = rowSql.createCell(0);
-				cellSql.setCellValue(query);
-				int columnsNumber = rsmd.getColumnCount();
-				while (rs.next()) {
-					csvData = new LinkedHashMap();
-					for (int i = 1; i <= columnsNumber; i++) {
-						if (rs.getObject(i) != null) {
-							csvData.put(i - 1 + "", rs.getObject(i).toString());
-						} else {
-							csvData.put(i - 1 + "", null);
+				if(fileType != null && fileType.equals("xlsx")){
+					XSSFWorkbook wb=	new XSSFWorkbook();
+					XSSFSheet sheet= wb.createSheet(sheetName);
+					XSSFSheet sheet1 = wb.createSheet("SQL");
+					Iterator hiter = colsMapHeader.iterator();
+					int coulmn = 0;
+					int rowno = 0;
+					
+					XSSFRow row = sheet.createRow(rowno++);
+					while (hiter.hasNext()) {
+						XSSFCell cell = row.createCell(coulmn++);
+						cell.setCellValue((String) hiter.next());
+					}
+					XSSFRow rowSql = sheet1.createRow(0);
+					XSSFCell cellSql = rowSql.createCell(0);
+					cellSql.setCellValue(query);
+					int columnsNumber = rsmd.getColumnCount();
+					while (rs.next()) {
+						csvData = new LinkedHashMap();
+						for (int i = 1; i <= columnsNumber; i++) {
+							if (rs.getObject(i) != null) {
+								csvData.put(i - 1 + "", rs.getObject(i).toString());
+							} else {
+								csvData.put(i - 1 + "", null);
+							}
 						}
+						List colsMapData = new ArrayList();
+	
+						Iterator iter1 = csvData.entrySet().iterator();
+						while (iter1.hasNext()) {
+							Map.Entry mEntry = (Map.Entry) iter1.next();
+							colsMapData.add(mEntry.getValue());
+						}
+						row = sheet.createRow(rowno++);
+						Iterator diter = colsMapData.iterator();
+						coulmn = 0;
+						while (diter.hasNext()) {
+							XSSFCell cell = row.createCell(coulmn);
+							if(coulmn == 0 || coulmn == 4){
+								int val=Integer.parseInt((String)diter.next());
+								cell.setCellValue(val);
+							}else{
+								cell.setCellValue((String)diter.next());
+							}
+							coulmn=coulmn+1;
+						}
+						Thread.sleep(50);
 					}
-					List colsMapData = new ArrayList();
-
-					Iterator iter1 = csvData.entrySet().iterator();
-					while (iter1.hasNext()) {
-						Map.Entry mEntry = (Map.Entry) iter1.next();
-						colsMapData.add(mEntry.getValue());
-					}
-					row = sheet.createRow(rowno++);
-					Iterator diter = colsMapData.iterator();
-					coulmn = 0;
-					while (diter.hasNext()) {
-						HSSFCell cell = row.createCell(coulmn);
-						cell.setCellValue((String) diter.next());
-						coulmn=coulmn+1;
-					}
-					Thread.sleep(50);
 					System.out.println("Data added successfully !!!");
-
-				}
-				String rlocation=reportLocation+fileName;
-				File directory = new File(String.valueOf(rlocation));
-				if(!directory.exists()){
-					directory.getParentFile().mkdirs();
-				 }           
-				FileOutputStream fileOut = new FileOutputStream(rlocation);
-
-				// write this workbook to an Outputstream.
-				wb.write(fileOut);
-				fileOut.flush();
-				fileOut.close();
+					String rlocation=reportLocation+fileName;
+					File directory = new File(String.valueOf(rlocation));
+					if(!directory.exists()){
+						directory.getParentFile().mkdirs();
+					 }           
+					FileOutputStream fileOut = new FileOutputStream(rlocation);
+	
+					// write this workbook to an Outputstream.
+					wb.write(fileOut);
+					fileOut.flush();
+					fileOut.close();
+					
+				}else{
+				
+						HSSFWorkbook wb = new HSSFWorkbook();
+						HSSFSheet sheet = wb.createSheet(sheetName);
+						HSSFSheet sheet1 = wb.createSheet("SQL");
+						Iterator hiter = colsMapHeader.iterator();
+						int coulmn = 0;
+						int rowno = 0;
+						
+						HSSFRow row = sheet.createRow(rowno++);
+						while (hiter.hasNext()) {
+							HSSFCell cell = row.createCell(coulmn++);
+							cell.setCellValue((String) hiter.next());
+						}
+						
+						HSSFRow rowSql = sheet1.createRow(0);
+						HSSFCell cellSql = rowSql.createCell(0);
+						cellSql.setCellValue(query);
+						int columnsNumber = rsmd.getColumnCount();
+						while (rs.next()) {
+							csvData = new LinkedHashMap();
+							for (int i = 1; i <= columnsNumber; i++) {
+								if (rs.getObject(i) != null) {
+									csvData.put(i - 1 + "", rs.getObject(i).toString());
+								} else {
+									csvData.put(i - 1 + "", null);
+								}
+							}
+							List colsMapData = new ArrayList();
+		
+							Iterator iter1 = csvData.entrySet().iterator();
+							while (iter1.hasNext()) {
+								Map.Entry mEntry = (Map.Entry) iter1.next();
+								colsMapData.add(mEntry.getValue());
+							}
+							row = sheet.createRow(rowno++);
+							Iterator diter = colsMapData.iterator();
+							coulmn = 0;
+							while (diter.hasNext()) {
+								HSSFCell cell = row.createCell(coulmn);
+								if(coulmn == 0 || coulmn == 4){
+									int val=Integer.parseInt((String)diter.next());
+									cell.setCellValue(val);
+								}else{
+									cell.setCellValue((String)diter.next());
+								}
+								coulmn=coulmn+1;
+							}
+							Thread.sleep(50);
+		
+						}
+						System.out.println("Data added successfully !!!");
+						String rlocation=reportLocation+fileName;
+						File directory = new File(String.valueOf(rlocation));
+						if(!directory.exists()){
+							directory.getParentFile().mkdirs();
+						 }           
+						FileOutputStream fileOut = new FileOutputStream(rlocation);
+		
+						// write this workbook to an Outputstream.
+						wb.write(fileOut);
+						fileOut.flush();
+						fileOut.close();
+				}	
 				con.close();
-
 			} catch (Exception e) {
 				e.printStackTrace();// TODO: handle exception
 			}

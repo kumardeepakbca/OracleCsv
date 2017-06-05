@@ -1,15 +1,20 @@
-java version "1.8.0_112"
-Maven:apache-maven-3.3.9
-Import maven project in Eclipse
-Right click on pom.xml ->Run as-> Maven install
-Jar file generated in target folder.
+Required S/w:
+jdk1.5.0_20
+Apache Maven 2.2.1
 
-Command propmpt:
 
-Java version "1.8.0_112"
-Maven:apache-maven-3.3.9
+IDE: Eclipse Indigo
 
-Run command inside folder at pom.xml: mvn clean install
-Jar file will create in target folder 
-How to run jar?
-java -jar queryData.jar
+Description:
+Just go inside project folder up to pom.xml. after that run follwing command
+
+mvn clean install
+
+After that jar file will generate in target folder queryData.jar.
+Run jar file using following command:
+
+java -jar queryData.jar  C:\\properties\\database.properties
+Query need to keep inside sql.properties file.
+File type need to keep inside config.properties file.
+
+Note:ojdbc5 jar file required for oracle db connectivity
