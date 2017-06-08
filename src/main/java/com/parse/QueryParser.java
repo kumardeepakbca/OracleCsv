@@ -24,7 +24,14 @@ import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.CreationHelper;
+import org.apache.poi.ss.usermodel.DateUtil;
+import org.apache.poi.ss.usermodel.IndexedColors;
+import org.apache.poi.xssf.streaming.SXSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFCell;
+import org.apache.poi.xssf.usermodel.XSSFCellStyle;
+import org.apache.poi.xssf.usermodel.XSSFFont;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -112,6 +119,9 @@ public class QueryParser {
 			properties.load(new FileInputStream(properties.getProperty("config.path")));
 			properties.load(new FileInputStream(properties.getProperty("sql.path")));
 			String fileType=properties.getProperty("file.type");
+			if(fileType == null || "".equals(fileType.trim())){
+				fileType="xls";
+			}
 			System.out.println("fileType :- " + fileType);
 			System.out.println("dayName :- " + dayName);
 			String fileName = "MT559_110_Locked_Report_" + m + d + year	+ "."+fileType;
@@ -187,7 +197,7 @@ public class QueryParser {
 
 				String sheetName = "MT559_110_Report";// name of sheet
 				
-				if(fileType != null && fileType.equals("xlsx")){
+				if(fileType != null/* && fileType.equals("xlsx")*/){
 					XSSFWorkbook wb=	new XSSFWorkbook();
 					XSSFSheet sheet= wb.createSheet(sheetName);
 					XSSFSheet sheet1 = wb.createSheet("SQL");
@@ -195,9 +205,38 @@ public class QueryParser {
 					int coulmn = 0;
 					int rowno = 0;
 					
+					
+					CellStyle style=null;
+					CellStyle styleData=null;
+				     // Creating a font
+				        XSSFFont font= wb.createFont();
+				        font.setFontHeightInPoints((short)11);
+				        font.setBold(true);
+				        font.setItalic(false);
+
+				        style=wb.createCellStyle();
+						//style.setFillForegroundColor(IndexedColors.GREY_50_PERCENT.getIndex());
+				        //style.setFillPattern(CellStyle.SOLID_FOREGROUND);
+				        style.setAlignment(CellStyle.ALIGN_CENTER);
+						style.setBorderTop(XSSFCellStyle.BORDER_THIN);
+				        style.setBorderBottom(XSSFCellStyle.BORDER_THIN);
+				        style.setBorderLeft(XSSFCellStyle.BORDER_THIN);
+				        style.setBorderRight(XSSFCellStyle.BORDER_THIN);
+						style.setFont(font);
+						
+						styleData=wb.createCellStyle();
+				        styleData.setAlignment(CellStyle.ALIGN_CENTER);
+						styleData.setBorderTop(XSSFCellStyle.BORDER_THIN);
+				        styleData.setBorderBottom(XSSFCellStyle.BORDER_THIN);
+				        styleData.setBorderLeft(XSSFCellStyle.BORDER_THIN);
+				        styleData.setBorderRight(XSSFCellStyle.BORDER_THIN);
+				        
+				        // Setting cell style
+					
 					XSSFRow row = sheet.createRow(rowno++);
 					while (hiter.hasNext()) {
 						XSSFCell cell = row.createCell(coulmn++);
+						cell.setCellStyle(style);
 						cell.setCellValue((String) hiter.next());
 					}
 					XSSFRow rowSql = sheet1.createRow(0);
@@ -227,9 +266,38 @@ public class QueryParser {
 							XSSFCell cell = row.createCell(coulmn);
 							if(coulmn == 0 || coulmn == 4){
 								int val=Integer.parseInt((String)diter.next());
+								cell.setCellStyle(styleData);
 								cell.setCellValue(val);
-							}else{
-								cell.setCellValue((String)diter.next());
+							} else if(coulmn == 2 || coulmn == 3 || coulmn == 6 || coulmn == 8 || coulmn == 9){
+								
+								CellStyle cellStyle = wb.createCellStyle();
+								cellStyle.setAlignment(CellStyle.ALIGN_CENTER);
+								cellStyle.setBorderTop(XSSFCellStyle.BORDER_THIN);
+								cellStyle.setBorderBottom(XSSFCellStyle.BORDER_THIN);
+								cellStyle.setBorderLeft(XSSFCellStyle.BORDER_THIN);
+								cellStyle.setBorderRight(XSSFCellStyle.BORDER_THIN);
+								cell.setCellStyle(cellStyle);
+								String dateVal=(String)diter.next();
+								if(dateVal != null){
+									String asFormula = "\"" + dateVal + "\"";
+									cell.setCellType(SXSSFCell.CELL_TYPE_FORMULA);
+									cell.setCellFormula(asFormula);
+								}else{
+									cell.setCellValue(dateVal);
+								}
+								
+								
+							} else{
+								cell.setCellStyle(styleData);
+								String val=(String)diter.next();
+								if(val != null){
+									String asFormula = "\"" + val + "\"";
+									cell.setCellType(SXSSFCell.CELL_TYPE_FORMULA);
+									cell.setCellFormula(asFormula);
+								}else{
+									cell.setCellValue(val);
+								}
+								
 							}
 							coulmn=coulmn+1;
 						}
@@ -248,70 +316,7 @@ public class QueryParser {
 					fileOut.flush();
 					fileOut.close();
 					
-				}else{
-				
-						HSSFWorkbook wb = new HSSFWorkbook();
-						HSSFSheet sheet = wb.createSheet(sheetName);
-						HSSFSheet sheet1 = wb.createSheet("SQL");
-						Iterator hiter = colsMapHeader.iterator();
-						int coulmn = 0;
-						int rowno = 0;
-						
-						HSSFRow row = sheet.createRow(rowno++);
-						while (hiter.hasNext()) {
-							HSSFCell cell = row.createCell(coulmn++);
-							cell.setCellValue((String) hiter.next());
-						}
-						
-						HSSFRow rowSql = sheet1.createRow(0);
-						HSSFCell cellSql = rowSql.createCell(0);
-						cellSql.setCellValue(query);
-						int columnsNumber = rsmd.getColumnCount();
-						while (rs.next()) {
-							csvData = new LinkedHashMap();
-							for (int i = 1; i <= columnsNumber; i++) {
-								if (rs.getObject(i) != null) {
-									csvData.put(i - 1 + "", rs.getObject(i).toString());
-								} else {
-									csvData.put(i - 1 + "", null);
-								}
-							}
-							List colsMapData = new ArrayList();
-		
-							Iterator iter1 = csvData.entrySet().iterator();
-							while (iter1.hasNext()) {
-								Map.Entry mEntry = (Map.Entry) iter1.next();
-								colsMapData.add(mEntry.getValue());
-							}
-							row = sheet.createRow(rowno++);
-							Iterator diter = colsMapData.iterator();
-							coulmn = 0;
-							while (diter.hasNext()) {
-								HSSFCell cell = row.createCell(coulmn);
-								if(coulmn == 0 || coulmn == 4){
-									int val=Integer.parseInt((String)diter.next());
-									cell.setCellValue(val);
-								}else{
-									cell.setCellValue((String)diter.next());
-								}
-								coulmn=coulmn+1;
-							}
-							Thread.sleep(50);
-		
-						}
-						System.out.println("Data added successfully !!!");
-						String rlocation=reportLocation+fileName;
-						File directory = new File(String.valueOf(rlocation));
-						if(!directory.exists()){
-							directory.getParentFile().mkdirs();
-						 }           
-						FileOutputStream fileOut = new FileOutputStream(rlocation);
-		
-						// write this workbook to an Outputstream.
-						wb.write(fileOut);
-						fileOut.flush();
-						fileOut.close();
-				}	
+				}
 				con.close();
 			} catch (Exception e) {
 				e.printStackTrace();// TODO: handle exception
