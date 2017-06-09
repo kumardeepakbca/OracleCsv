@@ -272,7 +272,7 @@ public class QueryParser {
 								int val=Integer.parseInt((String)diter.next());
 								cell.setCellStyle(styleData);
 								cell.setCellValue(val);
-							} else if(coulmn == 2 || coulmn == 3 || coulmn == 5 || coulmn == 6 || coulmn == 8 || coulmn == 9){
+							} else if(coulmn == 2 || coulmn == 3 || coulmn == 6 || coulmn == 8 || coulmn == 9){
 								
 								CellStyle cellStyle = wb.createCellStyle();
 								cellStyle.setDataFormat(createHelper.createDataFormat().getFormat("MM/dd/yyyy hh:mm:ss"));
@@ -288,7 +288,22 @@ public class QueryParser {
 									cell.setCellValue(date);
 								}
 								
-							} else{
+							}else if(coulmn == 5 ){
+								
+								CellStyle cellStyle = wb.createCellStyle();
+								cellStyle.setDataFormat(createHelper.createDataFormat().getFormat("MM/dd/yyyy hh:mm:ss"));
+								cellStyle.setAlignment(CellStyle.ALIGN_CENTER);
+								cellStyle.setBorderTop(XSSFCellStyle.BORDER_THIN);
+								cellStyle.setBorderBottom(XSSFCellStyle.BORDER_THIN);
+								cellStyle.setBorderLeft(XSSFCellStyle.BORDER_THIN);
+								cellStyle.setBorderRight(XSSFCellStyle.BORDER_THIN);
+								cell.setCellStyle(cellStyle);
+								String dateVal=(String)diter.next(); 
+								if(dateVal != null && !"".equals(dateVal.trim())){
+									Date date=new SimpleDateFormat("MM/dd/yy hh:mm:ss").parse(dateVal);  
+									cell.setCellValue(date);
+								}
+							}else{
 								cell.setCellStyle(styleData);
 								String val=(String)diter.next();
 								if(val != null){
