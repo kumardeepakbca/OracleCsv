@@ -19,6 +19,20 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
+import java.text.SimpleDateFormat;  
+import java.util.Calendar;
+import java.util.Date;
+ 
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.CreationHelper;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+ 
+
+ 
 
 import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.hssf.usermodel.HSSFRow;
@@ -155,21 +169,14 @@ public class QueryParser {
 				System.out.println("url :- " + url);
 				System.out.println("username :- " + username);
 				System.out.println("password :- " + password);
-				//System.out.println("QUERY :- " + query);
-				//System.out.println("Session init query :- " + sessionQuery);
 				System.out.println("Report Location :- " + reportLocation);
 				System.out.println("dateQuery :---------- " + dateQuery);
 				
 				Class.forName(driverClass);
-				// step2 create the connection object
 				Connection con = DriverManager.getConnection(url, username,
 						password);
-
-				// step3 create the statement object
 				Statement stmt = con.createStatement();
-				// step4 execute query
-				// rs=stmt.executeQuery(Constants.query);
-				
+			
 				if (sessionQuery != null && !"".equals(sessionQuery.trim())) {
 					System.out
 							.println("Session Init Query executing :---------------- ");
@@ -197,7 +204,7 @@ public class QueryParser {
 
 				String sheetName = "MT559_110_Report";// name of sheet
 				
-				if(fileType != null/* && fileType.equals("xlsx")*/){
+				if(fileType != null){
 					XSSFWorkbook wb=	new XSSFWorkbook();
 					XSSFSheet sheet= wb.createSheet(sheetName);
 					XSSFSheet sheet1 = wb.createSheet("SQL");
@@ -215,8 +222,6 @@ public class QueryParser {
 				        font.setItalic(false);
 
 				        style=wb.createCellStyle();
-						//style.setFillForegroundColor(IndexedColors.GREY_50_PERCENT.getIndex());
-				        //style.setFillPattern(CellStyle.SOLID_FOREGROUND);
 				        style.setAlignment(CellStyle.ALIGN_CENTER);
 						style.setBorderTop(XSSFCellStyle.BORDER_THIN);
 				        style.setBorderBottom(XSSFCellStyle.BORDER_THIN);
@@ -230,8 +235,6 @@ public class QueryParser {
 				        styleData.setBorderBottom(XSSFCellStyle.BORDER_THIN);
 				        styleData.setBorderLeft(XSSFCellStyle.BORDER_THIN);
 				        styleData.setBorderRight(XSSFCellStyle.BORDER_THIN);
-				        
-				        // Setting cell style
 					
 					XSSFRow row = sheet.createRow(rowno++);
 					while (hiter.hasNext()) {
@@ -262,30 +265,28 @@ public class QueryParser {
 						row = sheet.createRow(rowno++);
 						Iterator diter = colsMapData.iterator();
 						coulmn = 0;
+						CreationHelper createHelper = wb.getCreationHelper();
 						while (diter.hasNext()) {
 							XSSFCell cell = row.createCell(coulmn);
 							if(coulmn == 0 || coulmn == 4){
 								int val=Integer.parseInt((String)diter.next());
 								cell.setCellStyle(styleData);
 								cell.setCellValue(val);
-							} else if(coulmn == 2 || coulmn == 3 || coulmn == 6 || coulmn == 8 || coulmn == 9){
+							} else if(coulmn == 2 || coulmn == 3 || coulmn == 5 || coulmn == 6 || coulmn == 8 || coulmn == 9){
 								
 								CellStyle cellStyle = wb.createCellStyle();
+								cellStyle.setDataFormat(createHelper.createDataFormat().getFormat("MM/dd/yyyy hh:mm:ss"));
 								cellStyle.setAlignment(CellStyle.ALIGN_CENTER);
 								cellStyle.setBorderTop(XSSFCellStyle.BORDER_THIN);
 								cellStyle.setBorderBottom(XSSFCellStyle.BORDER_THIN);
 								cellStyle.setBorderLeft(XSSFCellStyle.BORDER_THIN);
 								cellStyle.setBorderRight(XSSFCellStyle.BORDER_THIN);
 								cell.setCellStyle(cellStyle);
-								String dateVal=(String)diter.next();
-								if(dateVal != null){
-									String asFormula = "\"" + dateVal + "\"";
-									cell.setCellType(SXSSFCell.CELL_TYPE_FORMULA);
-									cell.setCellFormula(asFormula);
-								}else{
-									cell.setCellValue(dateVal);
+								String dateVal=(String)diter.next(); 
+								if(dateVal != null && !"".equals(dateVal.trim())){
+									Date date=new SimpleDateFormat("MM/dd/yyyy hh:mm:ss").parse(dateVal);  
+									cell.setCellValue(date);
 								}
-								
 								
 							} else{
 								cell.setCellStyle(styleData);
