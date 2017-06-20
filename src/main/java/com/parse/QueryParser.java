@@ -300,7 +300,6 @@ public class QueryParser {
 							}else{
 								cell.setCellStyle(styleData);
 								String val=(String)diter.next();
-								val="Test";
 							/*	if(val != null){
 									String asFormula = "\"" + val + "\"";
 									cell.setCellType(SXSSFCell.CELL_TYPE_FORMULA);
