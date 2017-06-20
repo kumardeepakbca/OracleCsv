@@ -187,8 +187,20 @@ public class QueryParser {
 				String sheetName = "MT559_110_Report";// name of sheet
 				
 				if(fileType != null){
-					XSSFWorkbook wb=	new XSSFWorkbook();
+					XSSFWorkbook wb=new XSSFWorkbook();
 					XSSFSheet sheet= wb.createSheet(sheetName);
+					for (int i=0;i< colsMapHeader.size();i++) {
+						sheet.setColumnWidth(i, 5000);
+					}
+					sheet.setColumnWidth(2, 5000);
+					sheet.setColumnWidth(3, 5000);
+					sheet.setColumnWidth(6, 5000);
+					sheet.setColumnWidth(5, 5000);
+					sheet.setColumnWidth(8, 5000);
+					sheet.setColumnWidth(9, 5000);	
+					sheet.setColumnWidth(20, 8000);	
+					sheet.setColumnWidth(21, 8000);	
+					sheet.setColumnWidth(30, 8000);	
 					XSSFSheet sheet1 = wb.createSheet("SQL");
 					Iterator hiter = colsMapHeader.iterator();
 					int coulmn = 0;
@@ -288,13 +300,14 @@ public class QueryParser {
 							}else{
 								cell.setCellStyle(styleData);
 								String val=(String)diter.next();
-								if(val != null){
+								val="Test";
+							/*	if(val != null){
 									String asFormula = "\"" + val + "\"";
 									cell.setCellType(SXSSFCell.CELL_TYPE_FORMULA);
 									cell.setCellFormula(asFormula);
-								}else{
+								}else{*/
 									cell.setCellValue(val);
-								}
+								//}
 								
 							}
 							coulmn=coulmn+1;
