@@ -21,7 +21,6 @@ import java.util.Properties;
 
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.CreationHelper;
-import org.apache.poi.xssf.streaming.SXSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFCellStyle;
 import org.apache.poi.xssf.usermodel.XSSFFont;
@@ -32,10 +31,18 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 public class QueryParser {
 
 	public static void main(String[] args) throws Exception {
-		String outputPath = "";
 
 		try {
-			loadData(outputPath, args[0]);
+			if(args.length == 1)
+			{
+				loadData(args[0],null,null,null);
+			}else if(args.length == 2){
+				loadData(args[0],args[1],null,null);
+			}else if(args.length == 3){
+				loadData(args[0],args[1],args[2],null);
+			}else if(args.length == 4){
+				loadData(args[0],args[1],args[2],args[3]);
+			}
 
 		} catch (Exception e) {
 			System.out.println(e.getMessage());
@@ -85,8 +92,7 @@ public class QueryParser {
 		return csvData;
 	}
 
-	static void loadData(String outputPath,
-			String propertiesFilePath) {
+	static void loadData(String propertiesFilePath,String dbName,String cuname,String cpwd) {
 		System.out.println("propertiesFilePath :- " + propertiesFilePath);
 		ResultSet rs = null;
 		Properties properties = new Properties();
@@ -132,9 +138,28 @@ public class QueryParser {
 				
 				String driverClass = properties
 						.getProperty("app.jdbc.driverClassName");
-				String url = properties.getProperty("app.jdbc.url");
-				String username = properties.getProperty("app.jdbc.username");
-				String password = properties.getProperty("app.jdbc.password");
+				
+				String url="";
+				String username="";
+				String password="";
+				if(dbName != null && !"".equals(dbName)){
+					url=properties.getProperty("app.jdbc.url");
+					url=url.substring(0,url.lastIndexOf(":")+1);
+					url=url+dbName;
+				}else{
+					url = properties.getProperty("app.jdbc.url");
+				}
+				if(cuname != null && !"".equals(cuname)){
+					username=cuname;
+				}else{
+					username = properties.getProperty("app.jdbc.username");
+				}
+				if(cpwd != null && !"".equals(cpwd)){
+					password=cpwd;
+				}else{
+					password = properties.getProperty("app.jdbc.password");
+				}
+				
 				String query="";
 				if(dayName != null && dayName.equalsIgnoreCase("Monday") ){
 					System.out.println("Monday query will excute>>>>>>>>");
@@ -170,9 +195,7 @@ public class QueryParser {
 					stmt.executeUpdate(dateQuery);
 				}
 				System.out.println("Query executing :---------------- ");
-				System.out.println("Query:---------------- "+query);
 				rs = stmt.executeQuery(query);
-				System.out.println("Result Set :- " + rs);
 				// File
 				ResultSetMetaData rsmd = rs.getMetaData();
 
