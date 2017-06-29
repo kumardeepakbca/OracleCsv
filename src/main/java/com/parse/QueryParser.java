@@ -28,6 +28,9 @@ import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
+import com.dorado.persistence.dmcommon.encrypt.CryptoFactory;
+
+
 public class QueryParser {
 
 	public static void main(String[] args) throws Exception {
@@ -178,6 +181,15 @@ public class QueryParser {
 				System.out.println("password :- " + password);
 				System.out.println("Report Location :- " + reportLocation);
 				System.out.println("dateQuery :---------- " + dateQuery);
+				/*String usernameEnc=CryptoFactory.safeEncrypt(username);
+				String passwordEnc=CryptoFactory.safeEncrypt(password);
+				System.out.println("Enc  username :-"+usernameEnc);
+				System.out.println("Enc  password :-"+passwordEnc);*/
+				
+				username=CryptoFactory.safeDecrypt(username);
+				password=CryptoFactory.safeDecrypt(password);
+				System.out.println("Decrypted  username :-"+username);
+				System.out.println("Decrypted  password :-"+password);
 				
 				Class.forName(driverClass);
 				Connection con = DriverManager.getConnection(url, username,
