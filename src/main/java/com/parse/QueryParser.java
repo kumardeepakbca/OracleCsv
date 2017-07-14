@@ -36,6 +36,7 @@ public class QueryParser {
 	public static void main(String[] args) throws Exception {
 
 		try {
+			//loadData("C:\\properties\\database.properties",null,null,null);
 			if(args.length == 1)
 			{
 				loadData(args[0],null,null,null);
@@ -96,13 +97,13 @@ public class QueryParser {
 	}
 
 	static void loadData(String propertiesFilePath,String dbName,String cuname,String cpwd) {
-		System.out.println("propertiesFilePath :- " + propertiesFilePath);
+		//System.out.println("propertiesFilePath :- " + propertiesFilePath);
 		ResultSet rs = null;
 		Properties properties = new Properties();
 		try {
 			String strDateFormat = "EEEE";
 			SimpleDateFormat sdf = new SimpleDateFormat(strDateFormat);
-			System.out.println("Current day of week in EEEE format : " + sdf.format(new Date()));
+			//System.out.println("Current day of week in EEEE format : " + sdf.format(new Date()));
 			String dayName=sdf.format(new Date());
 			int year = Calendar.getInstance().get(Calendar.YEAR);
 			int month = Calendar.getInstance().get(Calendar.MONTH);
@@ -127,8 +128,8 @@ public class QueryParser {
 			if(fileType == null || "".equals(fileType.trim())){
 				fileType="xls";
 			}
-			System.out.println("fileType :- " + fileType);
-			System.out.println("dayName :- " + dayName);
+			/*System.out.println("fileType :- " + fileType);
+			System.out.println("dayName :- " + dayName);*/
 			String fileName = "MT559_110_Locked_Report_" + m + d + year	+ "."+fileType;
 			int tableCount = 0;
 			List colsData = new ArrayList();
@@ -163,9 +164,26 @@ public class QueryParser {
 					password = properties.getProperty("app.jdbc.password");
 				}
 				
+				
+				String url1="";
+				String username1="";
+				String password1="";
+				url1 = properties.getProperty("app1.jdbc.url");
+				username1 = properties.getProperty("app1.jdbc.username");
+				password1 = properties.getProperty("app1.jdbc.password");
+				
+				String url2="";
+				String username2="";
+				String password2="";
+				url2 = properties.getProperty("app2.jdbc.url");
+				username2 = properties.getProperty("app2.jdbc.username");
+				password2 = properties.getProperty("app2.jdbc.password");
+				
+				
+				
 				String query="";
 				if(dayName != null && dayName.equalsIgnoreCase("Monday") ){
-					System.out.println("Monday query will excute>>>>>>>>");
+					//System.out.println("Monday query will excute>>>>>>>>");
 					query = properties.getProperty("app.monday.query");
 				}else{
 					query = properties.getProperty("app.query");
@@ -175,12 +193,12 @@ public class QueryParser {
 				
 				String sessionQuery = properties
 						.getProperty("app.query.init.session");
-				System.out.println("driverClass :- " + driverClass);
+				/*System.out.println("driverClass :- " + driverClass);
 				System.out.println("url :- " + url);
 				System.out.println("username :- " + username);
 				System.out.println("password :- " + password);
 				System.out.println("Report Location :- " + reportLocation);
-				System.out.println("dateQuery :---------- " + dateQuery);
+				System.out.println("dateQuery :---------- " + dateQuery);*/
 				/*String usernameEnc=CryptoFactory.safeEncrypt(username);
 				String passwordEnc=CryptoFactory.safeEncrypt(password);
 				System.out.println("Enc  username :-"+usernameEnc);
@@ -188,12 +206,39 @@ public class QueryParser {
 				
 				username=CryptoFactory.safeDecrypt(username);
 				password=CryptoFactory.safeDecrypt(password);
-				System.out.println("Decrypted  username :-"+username);
-				System.out.println("Decrypted  password :-"+password);
+				
+				if(username1 != null && !"".equals(username1.trim())){
+					username1=CryptoFactory.safeDecrypt(username1);
+					password1=CryptoFactory.safeDecrypt(password1);
+				}
+				if(username2 != null && !"".equals(username2.trim())){
+					username2=CryptoFactory.safeDecrypt(username2);
+					password2=CryptoFactory.safeDecrypt(password2);
+				}
+				/*System.out.println("Decrypted  username :-"+username);
+				System.out.println("Decrypted  password :-"+password);*/
 				
 				Class.forName(driverClass);
-				Connection con = DriverManager.getConnection(url, username,
-						password);
+				Connection con=null;
+				try {
+					con = DriverManager.getConnection(url, username,
+							password);
+				} catch (Exception e) {
+					// TODO: handle exception
+				}
+				try {
+					if(con == null ){
+						con = DriverManager.getConnection(url1, username1,
+								password1);
+					}
+				} catch (Exception e) {
+					// TODO: handle exception
+				}
+				if(con == null ){
+					con = DriverManager.getConnection(url2, username2,
+							password2);
+				}
+				
 				Statement stmt = con.createStatement();
 			
 				if (sessionQuery != null && !"".equals(sessionQuery.trim())) {
@@ -206,7 +251,7 @@ public class QueryParser {
 							.println("Session Date Query executing :---------------- ");
 					stmt.executeUpdate(dateQuery);
 				}
-				System.out.println("Query executing :---------------- ");
+				//System.out.println("Query executing :---------------- ");
 				rs = stmt.executeQuery(query);
 				// File
 				ResultSetMetaData rsmd = rs.getMetaData();
@@ -335,13 +380,7 @@ public class QueryParser {
 							}else{
 								cell.setCellStyle(styleData);
 								String val=(String)diter.next();
-							/*	if(val != null){
-									String asFormula = "\"" + val + "\"";
-									cell.setCellType(SXSSFCell.CELL_TYPE_FORMULA);
-									cell.setCellFormula(asFormula);
-								}else{*/
-									cell.setCellValue(val);
-								//}
+								cell.setCellValue(val);
 								
 							}
 							coulmn=coulmn+1;
