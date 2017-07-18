@@ -36,7 +36,6 @@ public class QueryParser {
 	public static void main(String[] args) throws Exception {
 
 		try {
-			//loadData("C:\\properties\\database.properties",null,null,null);
 			if(args.length == 1)
 			{
 				loadData(args[0],null,null,null);
@@ -96,14 +95,12 @@ public class QueryParser {
 		return csvData;
 	}
 
-	static void loadData(String propertiesFilePath,String dbName,String cuname,String cpwd) {
-		//System.out.println("propertiesFilePath :- " + propertiesFilePath);
+	static void loadData(String propertiesFilePath,String dbUrl,String cuname,String cpwd) {
 		ResultSet rs = null;
 		Properties properties = new Properties();
 		try {
 			String strDateFormat = "EEEE";
 			SimpleDateFormat sdf = new SimpleDateFormat(strDateFormat);
-			//System.out.println("Current day of week in EEEE format : " + sdf.format(new Date()));
 			String dayName=sdf.format(new Date());
 			int year = Calendar.getInstance().get(Calendar.YEAR);
 			int month = Calendar.getInstance().get(Calendar.MONTH);
@@ -128,62 +125,34 @@ public class QueryParser {
 			if(fileType == null || "".equals(fileType.trim())){
 				fileType="xls";
 			}
-			/*System.out.println("fileType :- " + fileType);
-			System.out.println("dayName :- " + dayName);*/
 			String fileName = "MT559_110_Locked_Report_" + m + d + year	+ "."+fileType;
-			int tableCount = 0;
-			List colsData = new ArrayList();
-			String timePeriod = "";
 			Map csvData = new HashMap();
 
 			try {
 				List colsMapHeader = new ArrayList();
-				int rowCount = 0;
+				String CRELSP2RPT=properties.getProperty("CRELSP2RPT");
+				String UserName=properties.getProperty("UserName");
+				String Password=properties.getProperty("Password");
+				String JdbcDriver=properties.getProperty("JdbcDriver");
 				
-				String driverClass = properties
-						.getProperty("app.jdbc.driverClassName");
-				
-				String url="";
-				String username="";
-				String password="";
-				if(dbName != null && !"".equals(dbName)){
-					url=properties.getProperty("app.jdbc.url");
-					url=url.substring(0,url.lastIndexOf(":")+1);
-					url=url+dbName;
+				if(dbUrl != null && !"".equals(dbUrl)){
+					CRELSP2RPT=dbUrl;
 				}else{
-					url = properties.getProperty("app.jdbc.url");
+					CRELSP2RPT=properties.getProperty("CRELSP2RPT");
 				}
 				if(cuname != null && !"".equals(cuname)){
-					username=cuname;
+					UserName=cuname;
 				}else{
-					username = properties.getProperty("app.jdbc.username");
+					UserName=properties.getProperty("UserName");
 				}
 				if(cpwd != null && !"".equals(cpwd)){
-					password=cpwd;
+					Password=cpwd;
 				}else{
-					password = properties.getProperty("app.jdbc.password");
+					Password=properties.getProperty("Password");
 				}
-				
-				
-				String url1="";
-				String username1="";
-				String password1="";
-				url1 = properties.getProperty("app1.jdbc.url");
-				username1 = properties.getProperty("app1.jdbc.username");
-				password1 = properties.getProperty("app1.jdbc.password");
-				
-				String url2="";
-				String username2="";
-				String password2="";
-				url2 = properties.getProperty("app2.jdbc.url");
-				username2 = properties.getProperty("app2.jdbc.username");
-				password2 = properties.getProperty("app2.jdbc.password");
-				
-				
 				
 				String query="";
 				if(dayName != null && dayName.equalsIgnoreCase("Monday") ){
-					//System.out.println("Monday query will excute>>>>>>>>");
 					query = properties.getProperty("app.monday.query");
 				}else{
 					query = properties.getProperty("app.query");
@@ -193,69 +162,27 @@ public class QueryParser {
 				
 				String sessionQuery = properties
 						.getProperty("app.query.init.session");
-				/*System.out.println("driverClass :- " + driverClass);
-				System.out.println("url :- " + url);
-				System.out.println("username :- " + username);
-				System.out.println("password :- " + password);
-				System.out.println("Report Location :- " + reportLocation);
-				System.out.println("dateQuery :---------- " + dateQuery);*/
-				/*String usernameEnc=CryptoFactory.safeEncrypt(username);
-				String passwordEnc=CryptoFactory.safeEncrypt(password);
-				System.out.println("Enc  username :-"+usernameEnc);
-				System.out.println("Enc  password :-"+passwordEnc);*/
 				
-				username=CryptoFactory.safeDecrypt(username);
-				password=CryptoFactory.safeDecrypt(password);
-				
-				if(username1 != null && !"".equals(username1.trim())){
-					username1=CryptoFactory.safeDecrypt(username1);
-					password1=CryptoFactory.safeDecrypt(password1);
-				}
-				if(username2 != null && !"".equals(username2.trim())){
-					username2=CryptoFactory.safeDecrypt(username2);
-					password2=CryptoFactory.safeDecrypt(password2);
-				}
-				/*System.out.println("Decrypted  username :-"+username);
-				System.out.println("Decrypted  password :-"+password);*/
-				
-				Class.forName(driverClass);
+				UserName=CryptoFactory.safeDecrypt(UserName);
+				Password=CryptoFactory.safeDecrypt(Password);
+				Class.forName(JdbcDriver);
 				Connection con=null;
 				try {
-					con = DriverManager.getConnection(url, username,
-							password);
+					con = DriverManager.getConnection(CRELSP2RPT, UserName,
+							Password);
 				} catch (Exception e) {
-					// TODO: handle exception
+					e.printStackTrace();// TODO: handle exception
 				}
-				try {
-					if(con == null ){
-						con = DriverManager.getConnection(url1, username1,
-								password1);
-					}
-				} catch (Exception e) {
-					// TODO: handle exception
-				}
-				if(con == null ){
-					con = DriverManager.getConnection(url2, username2,
-							password2);
-				}
-				
 				Statement stmt = con.createStatement();
-			
 				if (sessionQuery != null && !"".equals(sessionQuery.trim())) {
-					System.out
-							.println("Session Init Query executing :---------------- ");
 					stmt.executeUpdate(sessionQuery);
 				}
 				if (dateQuery != null && !"".equals(dateQuery.trim())) {
-					System.out
-							.println("Session Date Query executing :---------------- ");
 					stmt.executeUpdate(dateQuery);
 				}
-				//System.out.println("Query executing :---------------- ");
 				rs = stmt.executeQuery(query);
 				// File
 				ResultSetMetaData rsmd = rs.getMetaData();
-
 				LinkedHashMap map = getCSVHeaderData();
 				Iterator iter = map.entrySet().iterator();
 
@@ -387,7 +314,6 @@ public class QueryParser {
 						}
 						Thread.sleep(50);
 					}
-					System.out.println("Data added successfully !!!");
 					String rlocation=reportLocation+fileName;
 					File directory = new File(String.valueOf(rlocation));
 					if(!directory.exists()){
